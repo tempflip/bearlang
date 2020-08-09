@@ -1,6 +1,11 @@
 import { throws } from "assert";
 var fs = require('fs');
 
+class TreeItem {
+    fun : string;
+    args : string[]
+}
+
 class Line {
     tree : object;
     fun : string;
@@ -10,10 +15,10 @@ class Line {
         this.fun = tokens.shift();
         this.args = [];
         tokens.forEach(el => this.args.push(el));
-        console.log(this.fun, this.args);
+        // console.log(this.fun, this.args);
     }
 
-    getTree() : Object {
+    getTree() : TreeItem {
         return {
             fun : this.fun,
             args : this.args
@@ -22,16 +27,30 @@ class Line {
 }
 
 class Runner {
-    tree : Object;
+    tree : TreeItem[];
 
-    constructor(tree : object) {
+    constructor(tree : TreeItem[]) {
         this.tree = tree;
+    }
+
+    funs = {
+        '+' : (args => {
+            let x = 0;
+            args.forEach(el => x += parseInt(el));
+            return x;
+        })
     }
 
     eval() : void {
         this.tree.forEach(ln => {
             console.log(ln);
-        })
+            if (this.funs[ln.fun]) {
+                let retVal = this.funs[ln.fun](ln.args);
+                console.log(retVal);
+            } else {
+                console.log('### Cant fint the function: ', ln.fun);
+            }
+        });
     }
 }
 
@@ -45,7 +64,7 @@ class ProgFile {
         })
     }
 
-    getTree() : object {
+    getTree() : TreeItem[] {
         let tree = [];
         this.lineList.forEach(el => tree.push(el.getTree()));
         return tree;
