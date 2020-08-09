@@ -21,6 +21,20 @@ class Line {
     }
 }
 
+class Runner {
+    tree : Object;
+
+    constructor(tree : object) {
+        this.tree = tree;
+    }
+
+    eval() : void {
+        this.tree.forEach(ln => {
+            console.log(ln);
+        })
+    }
+}
+
 class ProgFile {
     body : string;
     lineList : Line[] = [];
@@ -36,8 +50,6 @@ class ProgFile {
         this.lineList.forEach(el => tree.push(el.getTree()));
         return tree;
     }
-
-
 }
 
 // let code = '+,1,5'
@@ -46,7 +58,9 @@ class ProgFile {
 // console.log(l.getTree());
 
 let pr = new ProgFile('prog1.br');
-console.log(pr.getTree());
+let progTree = pr.getTree();
+let runner = new Runner(progTree);
+runner.eval()
 
 
 
