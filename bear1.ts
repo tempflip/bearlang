@@ -1,9 +1,17 @@
 import { throws } from "assert";
+import { type } from "os";
 var fs = require('fs');
+
+
 
 class TreeItem {
     fun : string;
-    args : string[]
+    args : Arg[];
+}
+
+class Arg {
+    type : string;
+    val : string;
 }
 
 class Line {
@@ -21,8 +29,22 @@ class Line {
     getTree() : TreeItem {
         return {
             fun : this.fun,
-            args : this.args
+            args : this.args.map(argMapper)
         }
+    }
+}
+
+let argMapper  = (arg) => {
+    let val = arg;
+    let type = 'const';
+
+    if (isNaN(arg)) {
+        type = 'var';
+    }
+
+    return {
+        type : type,
+        val : val
     }
 }
 
@@ -41,16 +63,36 @@ class Runner {
         })
     }
 
+    vars = {x : "7"}
+
     eval() : void {
         this.tree.forEach(ln => {
-            console.log(ln);
+            // console.log(ln);
             if (this.funs[ln.fun]) {
-                let retVal = this.funs[ln.fun](ln.args);
+                
+                let args = ln.args.map(el => this.argEval(el));
+
+                let retVal = this.funs[ln.fun](args);
                 console.log(retVal);
             } else {
                 console.log('### Cant fint the function: ', ln.fun);
             }
         });
+    }
+
+    argEval(arg : Arg) : string {
+        let retVal;
+        switch (arg.type) {
+            case 'const':
+                retVal = arg.val;
+                break;
+            case 'var':
+                if (!this.vars[arg.val]) console.log('### Cant fint the variable: ', arg.val);
+                retVal = this.vars[arg.val];
+                break;
+        }
+
+        return retVal;
     }
 }
 
@@ -78,6 +120,7 @@ class ProgFile {
 
 let pr = new ProgFile('prog1.br');
 let progTree = pr.getTree();
+console.log(JSON.stringify(progTree, null, 2));
 let runner = new Runner(progTree);
 runner.eval()
 
