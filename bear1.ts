@@ -56,11 +56,16 @@ class Runner {
     }
 
     funs = {
-        '+' : (args => {
+        '+' : (args) => {
             let x = 0;
-            args.forEach(el => x += parseInt(el));
+            args.map(el => this.argEval(el))
+                .forEach(el => x += parseInt(el));
             return x;
-        })
+        },
+        'set' : args => {
+            this.vars[args[0].val] = args[1].val;
+            return true;
+        }
     }
 
     vars = {x : "7"}
@@ -70,9 +75,7 @@ class Runner {
             // console.log(ln);
             if (this.funs[ln.fun]) {
                 
-                let args = ln.args.map(el => this.argEval(el));
-
-                let retVal = this.funs[ln.fun](args);
+                let retVal = this.funs[ln.fun](ln.args);
                 console.log(retVal);
             } else {
                 console.log('### Cant fint the function: ', ln.fun);
