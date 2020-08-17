@@ -63,22 +63,37 @@ class Program implements IEvaluable {
 
 }
 
-function parseLine(progLine) : FunCall {
-
-    let tokens : string[] = progLine.split(',');
+function parseLine(tokens : string[]) : FunCall {
     
     let i = 0;
     let myFunCall;
+    let parOpen = 0;
+    let tokenBuffer = [];
     while (i < tokens.length) {
         
         let currentToken = tokens[i];
-        if (i == 0) {
-            myFunCall = new FunCall(currentToken);
-        } else {
-            if (isNaN(parseInt(currentToken))) {
-                myFunCall.argList.push(new Ref(currentToken));
+        
+        if (parOpen == 0) {
+            if (i == 0) {
+                myFunCall = new FunCall(currentToken);
             } else {
-                myFunCall.argList.push(new Const(currentToken));
+                if (currentToken == '(') {
+                    parOpen++;
+                } else if (isNaN(parseInt(currentToken))) {
+                    myFunCall.argList.push(new Ref(currentToken));
+                } else {
+                    myFunCall.argList.push(new Const(currentToken));
+                }
+            }
+        } else {
+            if (currentToken == ')') {
+                parOpen--;
+                if (parOpen == 0) {
+                    myFunCall.argList.push(parseLine(tokenBuffer));
+                    tokenBuffer = [];
+                }
+            } else {
+                tokenBuffer.push(currentToken);
             }
         }
         i++
@@ -92,7 +107,10 @@ class ProgFile {
     constructor(fname: string) {
         this.body = fs.readFileSync(fname, 'utf8');
         this.ast = new Program();
-        this.body.split(/\n+/g).forEach(ln => this.ast.progItemList.push(parseLine(ln)));
+        this.body.split(/\n+/g).forEach(ln => {
+            let tokens : string[] = ln.split(',');
+            this.ast.progItemList.push(parseLine(tokens))
+        });
     }
 
     getAst() : Program {
@@ -101,5 +119,5 @@ class ProgFile {
 
 }
 
-let pr = new ProgFile('prog1.br');
+let pr = new ProgFile('prog2.br');
 console.log(JSON.stringify(pr.getAst(), null, 2));
