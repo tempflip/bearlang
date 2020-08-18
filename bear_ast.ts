@@ -64,7 +64,7 @@ class Program implements IEvaluable {
 }
 
 function parseLine(tokens : string[]) : FunCall {
-    console.log('INPU', tokens);
+    console.log('INPUT', tokens);
     let i = 0;
     let myFunCall;
     let parOpen = 0;
@@ -79,20 +79,28 @@ function parseLine(tokens : string[]) : FunCall {
             } else {
                 if (currentToken == '(') {
                     parOpen++;
-                } else if (currentToken == ')') {
+                } 
+                //else if (currentToken == ')') {
 
-                } else if (isNaN(parseInt(currentToken))) {
+                // }
+                else if (isNaN(parseInt(currentToken))) {
                     myFunCall.argList.push(new Ref(currentToken));
                 } else {
                     myFunCall.argList.push(new Const(currentToken));
                 }
             }
         } else {
-            tokenBuffer.push(currentToken);
             if (currentToken == ')') {
                 parOpen--;
-                myFunCall.argList.push(parseLine(tokenBuffer));
-                tokenBuffer = [];
+                tokenBuffer.push(currentToken);
+
+                if (parOpen == 0) {
+                    myFunCall.argList.push(parseLine(tokenBuffer));
+                    tokenBuffer = [];
+                } else {
+                }
+            } else {
+                tokenBuffer.push(currentToken);
             }
         }
         i++
