@@ -20,13 +20,19 @@ class FunCall implements IEvaluable {
     }
 
     public eval() : string {
-        return 'in a funcall';
+        if (this.functionName == '+') {
+            let retVal = 0;
+            this.argList.forEach(arg => retVal += parseInt(arg.eval()));
+            return '' + retVal;
+        } else {
+            throw('I dont know this function: ' + this.functionName);
+        }
     }
 }
 
 class Const implements IEvaluable {
     public type = 'const';
-    public  value : string;
+    public value : string;
 
     constructor(value : string) {
         this.value = value;
@@ -50,6 +56,10 @@ class Ref implements IEvaluable {
     }    
 }
 
+class Scope {
+    
+}
+
 export class Program implements IEvaluable {
     public type = 'program';
     public progItemList : IEvaluable[] = [];
@@ -65,7 +75,10 @@ export class Program implements IEvaluable {
 
 
     public eval() : string {
-        return 'im a program';
+        this.progItemList.forEach(progLine => {
+            console.log('> ', progLine.eval());
+        });
+        return 'done';
     }    
 
 }
