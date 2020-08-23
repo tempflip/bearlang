@@ -69,42 +69,41 @@ function parseLine(tokens : string[]) : FunCall {
     let myFunCall;
     let parOpen = 0;
     let tokenBuffer = [];
+
     while (i < tokens.length) {
         
         let currentToken = tokens[i];
+
+        if (currentToken == '(') {
+            parOpen++;
+        } else if (currentToken == ')') {
+            parOpen--;
+        }
+
         console.log(currentToken, parOpen, tokenBuffer);
+
         if (parOpen == 0) {
             if (i == 0) {
                 myFunCall = new FunCall(currentToken);
             } else {
-                if (currentToken == '(') {
-                    parOpen++;
-                } 
-                //else if (currentToken == ')') {
-
-                // }
-                else if (isNaN(parseInt(currentToken))) {
+                if (currentToken == ')') {
+                    myFunCall.argList.push(parseLine(tokenBuffer));
+                    tokenBuffer = [];
+                } else if (isNaN(parseInt(currentToken))) {
                     myFunCall.argList.push(new Ref(currentToken));
                 } else {
                     myFunCall.argList.push(new Const(currentToken));
                 }
             }
         } else {
-            if (currentToken == ')') {
-                parOpen--;
-                tokenBuffer.push(currentToken);
-
-                if (parOpen == 0) {
-                    myFunCall.argList.push(parseLine(tokenBuffer));
-                    tokenBuffer = [];
-                } else {
-                }
-            } else {
-                tokenBuffer.push(currentToken);
+            if (currentToken != '(' || parOpen != 1) {
+                tokenBuffer.push(currentToken);           
             }
         }
         i++
     }
+
+    console.log('>>>> ', myFunCall);
     return myFunCall;
 }
 
@@ -127,4 +126,4 @@ class ProgFile {
 }
 
 let pr = new ProgFile('prog2.br');
-console.log(JSON.stringify(pr.getAst(), null, 2));
+// console.log(JSON.stringify(pr.getAst(), null, 2));
