@@ -14,6 +14,14 @@ let coreFunList = {
         let varRef = <Ref> argList[0];
         let varValue = argList[1];
         scope.setVal(varRef.getName(), varValue );
+    },
+
+    'if' : (scope : Scope, argList : IEvaluable[]) => {
+        if (argList[0].eval(scope) == 'TRUE') {
+            return argList[1].eval(scope);
+        } else {
+            return argList[2].eval(scope);
+        }
     }
 }
 
@@ -81,7 +89,7 @@ class Scope {
 
     public setVal(name : string, val : IEvaluable) {
         this.var[name] = val.eval(this);
-        console.log('scope: ', this);
+        // console.log('scope: ', this);
     }
 
     public getVal(name : string) {
@@ -107,7 +115,6 @@ export class Program implements IEvaluable {
 
     public eval(thisScope : Scope) : string {
         this.progItemList.forEach(progLine => {
-            // console.log(progLine);
             console.log('> ', progLine.eval(this.scope));
         });
         return 'done';
@@ -116,7 +123,7 @@ export class Program implements IEvaluable {
 }
 
 function parseLine(tokens : string[]) : FunCall {
-    console.log('INPUT', tokens);
+    // console.log('INPUT', tokens);
     let i = 0;
     let myFunCall;
     let parOpen = 0;
@@ -132,7 +139,7 @@ function parseLine(tokens : string[]) : FunCall {
             parOpen--;
         }
 
-        console.log(currentToken, parOpen, tokenBuffer);
+        // console.log(currentToken, parOpen, tokenBuffer);
 
         if (parOpen == 0) {
             if (i == 0) {
