@@ -3,10 +3,24 @@ import { type } from "os";
 import { Interface } from "readline";
 let fs = require('fs');
 
+let coreFunList = {
+    '+' : (scope : Scope, argList : IEvaluable[]) => {
+        let retVal = 0;
+        argList.forEach(arg => retVal += parseInt(arg.eval(scope)));
+        return '' + retVal;
+    },
+
+    'set' : (scope : Scope, argList : IEvaluable[]) => {
+        let varRef = <Ref> argList[0];
+        let varValue = argList[1];
+        scope.setVal(varRef.getName(), varValue );
+    }
+}
+
 
 interface IEvaluable {
     type : string;
-    eval() : string;
+    eval(scope : Scope) : string;
 }
 
 class FunCall implements IEvaluable {
@@ -19,11 +33,9 @@ class FunCall implements IEvaluable {
         this.argList = [];
     }
 
-    public eval() : string {
-        if (this.functionName == '+') {
-            let retVal = 0;
-            this.argList.forEach(arg => retVal += parseInt(arg.eval()));
-            return '' + retVal;
+    public eval(thisScope : Scope) : string {
+        if (coreFunList[this.functionName]) {
+            return coreFunList[this.functionName](thisScope, this.argList)
         } else {
             throw('I dont know this function: ' + this.functionName);
         }
@@ -38,7 +50,7 @@ class Const implements IEvaluable {
         this.value = value;
     }
 
-    public eval() : string {
+    public eval(thisScope : Scope) : string {
         return this.value;
     }    
 }
@@ -51,21 +63,40 @@ class Ref implements IEvaluable {
         this.name = name;
     }
 
-    public eval() : string {
-        return 'im a ref';
-    }    
+    public eval(thisScope : Scope) : string {
+        return thisScope.getVal(this.name);
+    }
+    
+    public getName() : string {
+        return this.name;
+    }
 }
 
 class Scope {
-    
+    private var;
+
+    constructor() {
+        this.var = {};
+    }
+
+    public setVal(name : string, val : IEvaluable) {
+        this.var[name] = val.eval(this);
+        console.log('scope: ', this);
+    }
+
+    public getVal(name : string) {
+        return this.var[name];
+    }
 }
 
 export class Program implements IEvaluable {
     public type = 'program';
     public progItemList : IEvaluable[] = [];
     private body : string;
+    private scope : Scope;
 
     public constructor(body : string) {
+        this.scope = new Scope();
         this.body = body;
         this.body.split(/\n+/g).forEach(ln => {
             let tokens : string[] = ln.split(',');
@@ -74,9 +105,10 @@ export class Program implements IEvaluable {
     }
 
 
-    public eval() : string {
+    public eval(thisScope : Scope) : string {
         this.progItemList.forEach(progLine => {
-            console.log('> ', progLine.eval());
+            // console.log(progLine);
+            console.log('> ', progLine.eval(this.scope));
         });
         return 'done';
     }    
@@ -134,7 +166,7 @@ export class ProgFile {
         this.ast = new Program(this.body);
     }
 
-    getAst() : Program {
+    getProgram() : Program {
         return this.ast;
     }
 }
